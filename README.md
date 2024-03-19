@@ -38,7 +38,7 @@ Many of the data files used to run the codes have been provided in full in this 
 
 We have omitted geospatial coordinates from the data rows that contain sensitive location data in the folder `SM_obs_public`. Omitted rows can be recognized by having a latitude of 170 and longitude of -40. Please contact the corresponding author julie.deslippe[at]vuw.ac.nz to request access to the full data set so that we can obtain the necessary permissions. 
 
-Large geospatial input files are stored separately. These are .tif raster files and can be downloaded from FigShare, as follows:
+Large geospatial input files are stored separately. These are .tif raster files and can be downloaded from FigShare (reserved DOI links will be made public once manuscript accepted):
 
 - floodrisk2023.tif: 10.6084/m9.figshare.25413709
 - MRRisk70r.tif: 10.6084/m9.figshare.25413733
