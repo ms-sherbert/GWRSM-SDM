@@ -1,6 +1,8 @@
 # GWRSM-SDM
 
-Repository for the manuscript entitled 'Leveraging human-nature interactions and spatial modelling to identify restorable refugia for a threatened tree species'.
+Repository for the manuscript 'Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill C, Ruston P, Jackson B, Deslippe JR. Leveraging human-nature interactions and spatial modelling to identify restorable refugia for a threatened tree species'.
+* These authors contribvuted equally. 
+Please note that this manuscript has not yet been through peer review. The FigShare links in this README file will become active after acceptance for publication. 
 
 [![DOI](https://zenodo.org/badge/772350956.svg)](https://zenodo.org/doi/10.5281/zenodo.10836317)
 
@@ -38,7 +40,7 @@ Many of the data files used to run the codes have been provided in full in this 
 
 We have omitted geospatial coordinates from the data rows that contain sensitive location data in the folder `SM_obs_public`. Omitted rows can be recognized by having a latitude of 170 and longitude of -40. Please contact the corresponding author julie.deslippe[at]vuw.ac.nz to request access to the full data set so that we can obtain the necessary permissions. 
 
-Large geospatial input files are stored separately. These are .tif raster files and can be downloaded from FigShare (reserved DOI links will be made public once manuscript accepted):
+Large geospatial input files are stored separately. These are .tif raster files and can be downloaded from FigShare:
 
 - floodrisk2023.tif: 10.6084/m9.figshare.25413709
 - MRRisk70r.tif: 10.6084/m9.figshare.25413733
