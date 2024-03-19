@@ -1,4 +1,4 @@
-# WaiSM-SDM
+# GWRSM-SDM
 
 Repository for the manuscript entitled 'Leveraging human-nature interactions and spatial modelling to identify restorable refugia for a threatened tree species'.
 
