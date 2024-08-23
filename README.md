@@ -1,9 +1,9 @@
 # GWRSM-SDM
 
-Repository for the manuscript 'Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill C, Ruston P, Jackson B, Deslippe JR. Leveraging human-nature interactions and spatial modelling to identify restorable refugia for a threatened tree species'.
+Repository for the manuscript 'Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill C, Ruston P, Jackson B, Deslippe JR. Identifying suitable and accessible refugia to mitigate impacts of an emerging disease on a rare tree'.
 Authors labelled with an asterisk (*) contributed equally. 
 
-Please note that this manuscript has not yet been through peer review. The FigShare links in this README file will become active after acceptance for publication. 
+Please note that this manuscript is currently in peer review. The FigShare links in this README file will become active after acceptance for publication. 
 
 [![DOI](https://zenodo.org/badge/772350956.svg)](https://zenodo.org/doi/10.5281/zenodo.10836317)
 
