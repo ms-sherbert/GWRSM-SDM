@@ -23,7 +23,7 @@ Please note that this manuscript has not yet been through peer review. The FigSh
 
 ### Dependencies
 
-All code provided in this repository has been tested for R versions 4.3.1 and 4.2.2. The versions of key R packages used were `PointedSDMs` version 1.3, `inlabru` version 2.10.1, `INLA` versions 23.04.24 and 23.09.09, `terra` version 1.7-55, `sf` version 1.0-14, and `sampbias` version 1.0.5. We cannot guarantee that these codes will work with other versions of R or these packages.  
+All code provided in this repository has been tested for R versions 4.3.1 and 4.2.2. The versions of key R packages used were `PointedSDMs` version 1.3, `inlabru` version 2.10.1, `INLA` versions 23.04.24 and 23.09.09, `terra` versions 1.7-46 (most recent tests) and 1.7-55, `sf` version 1.0-14, and `sampbias` version 1.0.5. We cannot guarantee that these codes will work with other versions of R or these packages.  
 
 ### Code files
 
