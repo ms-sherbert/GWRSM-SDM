@@ -25,7 +25,7 @@ library(scales)
 
 #--- Read in data and manipulate into format required ---#
 
-SMrecords <- read.csv("SM_obs/GWRmyrtles.csv") 
+SMrecords <- read.csv("SM_obs_public/GWRmyrtles.csv") 
 GWR <- read_sf("GWRboundary/GWRboundary2193.shp")
 
 # Assign a plausible amount of error (in metres) to records where error not recorded

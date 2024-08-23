@@ -1,6 +1,7 @@
 # Bootstrapping code for evaluating swamp maire presence points against LUCI model predictions
 # Written by: S Herbert
-# Written for R version 4.3.1
+# Last modified: 21/02/2024
+# Written for R version 4.3.1 (S Herbert)
 
 # Description of what this code does:
 
@@ -27,7 +28,9 @@
 #=== Preamble - use bits as needed for your computer ===#
 
 rm(list=ls())
-setwd("D:/Repositories/GWRSM-SDM") #just to make sure your working directory is the cloned repository
+
+local.dir <- "D:/"
+setwd(paste0(local.dir,"Repositories/GWRSM-SDM")) #just to make sure your working directory is the cloned repository
 
 #Load required packages
 #I think the inlabru / INLA / PointedSDMs packages will be need to recognise the BruSDM outputs
@@ -36,7 +39,7 @@ require(inlabru)     #version 2.10.1
 require(fmesher)
 require(R6)
 library(sf)
-library(INLA)        #version 23.09.09 (VUW PC)
+library(INLA)        #version 23.04.24 (HR Lai's computer) or version 23.09.09 (VUW PC)
 library(sf)
 library(terra)
 library(tidyverse)
@@ -53,15 +56,15 @@ GWR <-
 
 #iPPM predictions
 
-iPPMintensity <- st_read("Model-outputs/2024-02-20_iPPM_run/iPPM_predictions.shp")
+iPPMintensity <- st_read("Model-outputs/2024-08-22_iPPM_run/iPPM_predictions_lattice100.shp")
 
 #LUCI flood classifications
-flood <- rast("GISinputs-repositories/LUCI-flood-risk/floodrisk2023.tif")
+flood <- rast(paste0(local.dir,"GISinputs-repositories/LUCI-flood-risk/floodrisk2023.tif"))
 
 #Observed SYZmai presence-only records
 #(pooled from NVS, iNaturalist, Colan's data, and herbaria)
 obs <-
-  read_csv("SM_obs_GBIF/SMobs269.csv") %>%
+  read_csv("SM_obs_public/SMobs269.csv") %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%
@@ -69,7 +72,7 @@ obs <-
 
 obsSpatVec <- vect(as(obs, "Spatial"))
 
-#=== Step 1: Bootstrap 268 inside GWR expected from a random distribution, 10,000 times ===#
+#=== Step 1: Bootstrap 268 points inside GWR expected from a random distribution, 10,000 times ===#
 
 Nruns <- 10000
 datalist = vector(mode = "list", length = Nruns)
@@ -165,7 +168,7 @@ FloodSuit <- subst(FloodSuit, 5, 1)
 FloodSuit$floodrisk2023 #check it worked
 
 FloodSuit_100 <- aggregate(FloodSuit, fact=20)
-res(flood_100)
+res(FloodSuit_100) #Double-check that the resolution is correct
 plot(FloodSuit_100)
 
 Suitability <- terra::extract(FloodSuit_100,iPPMintensity) #interpolate predicted iPPM point locations with FloodSuit_100 raster to get multiplier values
@@ -185,4 +188,15 @@ Filtered_points <- ggplot() +
   theme_bw()
 
 #Export projected values to a shapefile for analysis in ArcGIS or QGIS
-st_write(iPPMintensity,"Model-outputs/filtered_predictions.shp")
+st_write(iPPMintensity,"Model-outputs/filtered_predictions_100.shp")
+
+#Export map of filtered projections
+
+ggsave(Filtered_points,
+       filename=paste0("Model-outputs/Filteredpreds100m.png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
+
+#Calculate how many scaled points were predicted to be greater than the average 
+
+length(which(iPPMintensity$scld_mn > 0))

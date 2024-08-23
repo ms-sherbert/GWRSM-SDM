@@ -1,0 +1,14 @@
+Scenario,Suitability,N points,Coverage,Area_km,
+Whole region,Below average,282825,36%,2828,
+Whole region,Above average,238802,31%,2388,5216
+Infection risk < 0.7,Below average,109126,14%,1091,
+Infection risk < 0.7,Above average,102300,13%,1023,2114
+Accesible,Below average,132426,17%,1324,
+Accesible,Above average,124447,16%,1244,2568
+Accesible and infection risk < 0.7,Below average,33558,4%,336,
+Accesible and infection risk < 0.7,Above average,36916,5%,369,705
+Total,All,778568,1,7786,
+,,,,,
+,,,,,
+,,,,,
+,,,,875,

@@ -1,33 +1,20 @@
 Covariate,Effect size,Standard deviation,Lower 95-CrI,Upper 95-CrI,Model,Run date
-Intercept,-21.423,0.319,-22.048,-20.799,Presence-only PPM,20/02/2024
-Distance to nearest road,-4.509,0.429,-5.35,-3.667,Presence-only PPM,20/02/2024
-Mean annual humidity,0.89,0.139,0.618,1.161,Presence-only PPM,20/02/2024
-Precipitation warmest quarter,1.166,0.098,0.973,1.359,Presence-only PPM,20/02/2024
-Soil drainage capacity,-0.239,0.053,-0.343,-0.135,Presence-only PPM,20/02/2024
-Winter solar radiation,-0.768,0.092,-0.948,-0.588,Presence-only PPM,20/02/2024
-Minimum temperature coldest month,1.505,0.181,1.15,1.859,Presence-only PPM,20/02/2024
-Temperature range,2.488,0.238,2.021,2.954,Presence-only PPM,20/02/2024
-Topographic wetness index,-0.509,0.091,-0.687,-0.331,Presence-only PPM,20/02/2024
-PA intercept,-6.890,0.497,-7.864,-5.916,Integrated PPM,27/02/2024
-PO intercept,-20.904,0.231,-21.357,-20.450,Integrated PPM,27/02/2024
-Distance to nearest road,-3.962,0.324,-4.596,-3.327,Integrated PPM,27/02/2024
-Mean annual humidity,0.475,0.121,0.239,0.712,Integrated PPM,27/02/2024
-Precipitation warmest quarter,1.283,0.102,1.083,1.483,Integrated PPM,27/02/2024
-Soil drainage capacity,-0.256,0.052,-0.358,-0.154,Integrated PPM,27/02/2024
-Winter solar radiation,-1.001,0.084,-1.166,-0.836,Integrated PPM,27/02/2024
-Minimum temperature coldest month,1.142,0.162,0.825,1.458,Integrated PPM,27/02/2024
-Temperature range,1.886,0.203,1.488,2.285,Integrated PPM,27/02/2024
-Topographic wetness index,-0.417,0.091,-0.595,-0.239,Integrated PPM,27/02/2024
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
-,,,,,,
+Intercept,-21.934,0.573,-23.058,-20.811,Presence-only PPM,15/08/2024
+Distance to nearest road,-2.698,0.831,-4.327,-1.07,Presence-only PPM,15/08/2024
+Mean annual humidity,0.475,0.331,-0.174,1.124,Presence-only PPM,15/08/2024
+Precipitation warmest quarter,1.367,0.413,0.558,2.176,Presence-only PPM,15/08/2024
+Soil drainage capacity,-0.118,0.174,-0.458,0.223,Presence-only PPM,15/08/2024
+Winter solar radiation,-0.619,0.278,-1.163,-0.075,Presence-only PPM,15/08/2024
+Minimum temperature coldest month,1.003,0.553,-0.081,2.088,Presence-only PPM,15/08/2024
+Temperature range,1.231,0.675,-0.092,2.553,Presence-only PPM,15/08/2024
+Topographic wetness index,0.068,0.277,-0.475,0.612,Presence-only PPM,15/08/2024
+PA intercept,-6.644,0.656,-7.931,-5.357,Integrated PPM,22/08/2024
+PO intercept,-21.421,0.392,-22.188,-20.654,Integrated PPM,22/08/2024
+Distance to nearest road,-2.423,0.579,-3.557,-1.289,Integrated PPM,22/08/2024
+Mean annual humidity,0.163,0.280,-0.386,0.711,Integrated PPM,22/08/2024
+Precipitation warmest quarter,0.959,0.357,0.259,1.659,Integrated PPM,22/08/2024
+Soil drainage capacity,-0.649,0.137,-0.918,-0.380,Integrated PPM,22/08/2024
+Winter solar radiation,-0.714,0.253,-1.210,-0.218,Integrated PPM,22/08/2024
+Minimum temperature coldest month,0.304,0.416,-0.511,1.119,Integrated PPM,22/08/2024
+Temperature range,0.395,0.506,-0.596,1.386,Integrated PPM,22/08/2024
+Topographic wetness index,-0.128,0.251,-0.619,0.364,Integrated PPM,22/08/2024

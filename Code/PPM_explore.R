@@ -1,6 +1,16 @@
 # Script to explore the feasibility of point process model
-# Written by: HR Lai & SM Herbert
+# Written by: HR Lai & S Herbert
 # Written for R version 4.2.2 (HR Lai), but works fine with 4.3.1 (S Herbert)
+
+#=== Preamble - use bits as needed for your computer ===#
+
+rm(list=ls())
+
+#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
+local.dir <- "D:/" #Change so that file path matches where these files are saved on your computer
+setwd(paste0(local.dir,"Repositories/GWRSM-SDM"))
+
+run.date <- as.character(Sys.Date())
 
 #=== Load required packages ===#
 
@@ -11,7 +21,7 @@ library(inlabru) #version 2.10.1
 library(INLA) #version 23.04.24 (HR Lai's computer) or version 23.09.09 (VUW PC)
 library(scoringRules)
 library(tidyterra)
-
+source("Code/utils.R")
 
 #=== Read in Data sources ===#
 
@@ -20,51 +30,51 @@ freshwater <-
   st_read("LCDB5-open-water/LCDB5-open-water-and-rivers.shp")
 GWR <-
   st_read("GWRboundary/GWRboundary2193.shp") %>%
-  st_difference(y = st_union(freshwater))
+  st_difference(y = st_union(freshwater)) 
 
 # Note that repository file paths are currently set to work from VUW PC
 # File paths for Hao Ran's computer follow this format: "covs_SM_Feb2023/distance_road.tif"
 
-wet <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif")
+wet <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
 wet <- crop(wet, GWR)
 wet <- scale(wet)
 
-drain <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif")
+drain <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
 drain <- crop(drain, GWR)
 drain <- scale(drain)
 
-Tmin <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif")
+Tmin <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
 Tmin <- crop(Tmin, GWR)
 Tmin <- scale(Tmin)
 
-precip <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif")
+precip <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
 precip <- crop(precip, GWR)
 precip <- scale(precip)
 
-humid <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif")
+humid <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
 humid <- crop(humid, GWR)
 humid <- scale(humid)
 
-solar <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif")
+solar <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
 solar <- crop(solar, GWR)
 solar <- scale(solar)
 
-Trange <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif")
+Trange <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
 Trange <- crop(Trange, GWR)
 Trange <- scale(Trange)
 
-road <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif")
+road <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
 road <- crop(road, GWR)
 road <- scale(road) #type in assigned name (e.g. 'road)' to check sf details
 
-# res(Tmin); res(precip); res(humid); res(solar); res(frost); res(Trange); res(road)
+# res(Tmin); res(precip); res(humid); res(solar); res(frost); res(Trange); res(road) #to check resolution of rasters
 
 
 #=== SYZmai records ===#
 
-# Presence-only records (pooled from NVS, iNaturalist, Colan's data, and herbaria)
+# Presence-only records (pooled from NVS, iNaturalist, authors' observations, and herbaria)
 obs <-
-  read_csv("SM_obs/SMobs269.csv") %>%
+  read_csv("SM_obs_public/SMobs269.csv") %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%
@@ -91,7 +101,8 @@ mesh1 <- inla.mesh.2d(
   cutoff = 500,
   crs = st_crs(GWR)
 )
-# mesh1$n
+
+mesh1$n #Number of vertices in mesh
 # plot(mesh1)
 ggplot() +
   # gg(data = flood) +
@@ -104,6 +115,8 @@ ggplot() +
   ylab("Latitude") +
   theme_bw()
 
+saveRDS(mesh1,paste0("Model-outputs/poPPM_mesh_GWR_",run.date,".rds"))
+#mesh1 <- read_rds("Model-outputs/poPPM_mesh_GWR_20240815.rds")
 
 #================= Modelling ==================#
 
@@ -135,39 +148,107 @@ fit <- lgcp(
   domain = list(geometry = mesh1),
   options = list(control.inla = list(int.strategy='eb'))
 )
-#write_rds(fit, "out/ppm_inla.rds") # I can't do this on the VUW computer - does it matter?
 
-# read from saved model
-#fit <- read_rds("out/ppm_inla.rds") # I can't do this on the VUW computer - does it matter?
+saveRDS(fit,paste0("Model-outputs/poPPM_GWR_",run.date,".rds"))
 
-summary(fit) #Seems to provide model summary just fine despite two previous lines not working
+# code to read from saved model if needed
+#fit <- read_rds("Model-outputs/poPPM_GWR_2024-08-19.rds")
+
+summary(fit)
 
 #Export model coefficients for fixed effects
-write.csv(fit$summary.fixed,"Model-outputs/PO-PPM_fixed_effects.csv")
+write.csv(fit$summary.fixed,paste0("Model-outputs/poPPM_fixed_effects_",run.date,".csv"))
+
+#=== Calculate prediction score ===#
+# Integrated predictions
+# First we partition the landscape into grids of some resolution (in km * km)
+
+B1 <- partition(samplers = GWR, resolution = 50*50)
+# plot(B1)
+
+# add the total observed number of occurrence points
+B1$NPres <- lengths(st_intersects(B1, obs))
+
+# predict the total number of occurrences (counts) per grid
+# As per our prediction of total abundance in the GWR,
+# We leave the following line out fo this chunk:
+# PAobs_intercept +
+# This is so that the model only predicts the number of points where the species is present
+
+Lambda <- predict(
+  fit,
+  fm_int(domain = mesh1, sampler = B1),  # this is to integrate the prediction over grid area
+  formula = ~ tapply(weight * exp(fmatern +
+                                    fTmin +
+                                    fprecip +
+                                    fhumid +
+                                    fsolar +
+                                    fwet +
+                                    fdrain +
+                                    fTrange +
+                                    froad + #For CRPS we want road back in
+                                    Intercept),
+                     .block,
+                     sum)
+)
+
+abun_total <-
+  Lambda %>%
+  rownames_to_column(".block")
+
+# add predicted total counts to the grid object
+B1 <-
+  B1 %>%
+  rownames_to_column(".block") %>%
+  left_join(abun_total)
+
+# some plots
+plot(select(B1, "mean"))
+plot(select(B1, "median"))
+with(B1, plot(NPres, median)); abline(0, 1)
+
+# calculate CRPS
+# see also https://inlabru-org.github.io/inlabru/articles/prediction_scores.html
+CRPS_block <- crps_pois(B1$NPres, B1$median)
+hist(CRPS_block, breaks = 50)   # we want these values to be a close to zero as possible
+
+median(CRPS_block, na.rm = TRUE)
+with(B1, plot(median, CRPS_block))
+
+#=== Examine Parameters ====#
+# int.plot <- plot(fit, "Intercept")
+flist <- vector("list", NROW(fit$summary.random$fTmin))
+for (i in seq_along(flist)) flist[[i]] <- plot(fit, "fTmin", index = i)
+multiplot(plotlist = flist, cols = 3)
+
+spde.range <- spde.posterior(fit, "fmatern", what = "range")
+spde.logvar <- spde.posterior(fit, "fmatern", what = "log.variance")
+range.plot <- plot(spde.range)
+var.plot <- plot(spde.logvar)
+multiplot(range.plot, var.plot)
+
+corplot <- plot(spde.posterior(fit, "fmatern", what = "matern.correlation"))
+covplot <- plot(spde.posterior(fit, "fmatern", what = "matern.covariance"))
+multiplot(covplot, corplot)
 
 #==== Make predictions ====#
 
 pred <- predict(
   fit,
-  fm_pixels(mesh1, mask = GWR),
+  #fm_pixels(mesh1, mask = GWR),
+  fm_pixels(mesh=mesh1, mask = GWR, dims = c(1445,1021)), 
   ~ data.frame(
     lambda = exp(fmatern + fTmin + fprecip + fhumid + fsolar + fwet +fdrain + fTrange + Intercept),
     loglambda = fmatern + fTmin + fprecip + fhumid + fsolar + fwet + fdrain + fTrange + Intercept,
     log_spatres = fmatern
   ),
-  num.threads = 8
+  num.threads = NULL
 )
 
-#write_rds(pred, "out/ppm_inla_pred.rds")
-#pred <- read_rds("out/ppm_inla_pred.rds")
+write_rds(pred, paste0("Model-outputs/poPPM_predictions_",run.date,".rds"))
+#pred <- read_rds("Model-outputs/poPPM_predictions_2024-08-19.rds")
 
-#Aggregate predictions to 1km grid and export to shapefile
-New_grid <-
-  st_read("GISinputs-repositories/GWR_1km_MRPM_grid/GWR_1km_MRPM_grid.shp")
-pred_agg <- aggregate(pred$lambda,New_grid,FUN = sum)
-st_write(pred_agg,"Model-outputs/Agg_PO-PPM_predictions.shp")
-
-#=== Plot predictions for Figure 3b ===#
+#=== Plot predictions for Figure 2 ===#
 
 pl1 <- ggplot() +
   gg(pred$lambda, geom = "tile") +
@@ -181,8 +262,8 @@ pl1 <- ggplot() +
 
 #I edited pl2 a bit to create FigS5a
 pl2 <- ggplot() +
-  gg(pred$loglambda, geom = "tile") +
-  geom_sf(data = GWR, alpha = 0.1) +
+  gg(pred$loglambda, geom = "tile",alpha = 1.0) +
+  geom_sf(data = GWR, alpha = 0.0) +
   #geom_sf(data = obs) +
   labs(xlab="",ylab="")+
   scale_fill_viridis_c(name = "Predicted mean intensity") +
@@ -213,7 +294,7 @@ scaled_df_PO <-cbind(scaled_mean_PO,pred$loglambda)
 
 ScaledPreds_PO <- ggplot() +
   geom_sf(data=scaled_df_PO, aes(geometry = geometry, color = scaled_mean_PO)) +
-  geom_sf(data = GWR, alpha = 0.1) +
+  geom_sf(data = GWR, alpha = 0.0) +
   #geom_sf(data = subset(PAobs, NPres == 0), color = "black") +
   #geom_sf(data = POobs, color = "grey70",pch=15) +
   #geom_sf(data = subset(PAobs, NPres == 1), color = "grey70") +
@@ -227,7 +308,7 @@ ScaledPreds_PO <- ggplot() +
 
 StDevs_PO <- ggplot() +
   geom_sf(data=scaled_df_PO, aes(geometry = geometry, color = sd)) +
-  geom_sf(data = GWR, alpha = 0.1) +
+  geom_sf(data = GWR, alpha = 0.0) +
   #geom_sf(data = subset(PAobs, NPres == 0), color = "black") +
   #geom_sf(data = POobs, color = "grey70",pch=15) +
   #geom_sf(data = subset(PAobs, NPres == 1), color = "grey70") +
@@ -238,27 +319,30 @@ StDevs_PO <- ggplot() +
   theme_bw()
 
 #Export projected values to a csv file
-write.csv(scaled_df_PO,"Model-outputs/PO-PPM_scaled_predictions.csv")
+write.csv(scaled_df_PO,paste0("Model-outputs/PO-PPM_scaled_predictions_100_",run.date,".csv"))
 #Export projected values to a shapefile for analysis in ArcGIS or QGIS
-st_write(scaled_df_PO,"Model-outputs/PO-PPM_predictions.shp")
+st_write(scaled_df_PO,paste0("Model-outputs/PO-PPM_predictions_100_",run.date,".shp"))
 
-#=== Examine Parameters ====#
-# int.plot <- plot(fit, "Intercept")
-flist <- vector("list", NROW(fit$summary.random$fflood))
-for (i in seq_along(flist)) flist[[i]] <- plot(fit, "fflood", index = i)
-multiplot(plotlist = flist, cols = 3)
+ggsave(pl2,
+       filename=paste0("Model-outputs/PO-LinearPreds100m.png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
 
-spde.range <- spde.posterior(fit, "fmatern", what = "range")
-spde.logvar <- spde.posterior(fit, "fmatern", what = "log.variance")
-range.plot <- plot(spde.range)
-var.plot <- plot(spde.logvar)
-multiplot(range.plot, var.plot)
+ggsave(ScaledPreds_PO,
+       filename=paste0("Model-outputs/PO-ScaledPreds100m.png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
 
-corplot <- plot(spde.posterior(fit, "fmatern", what = "matern.correlation"))
-covplot <- plot(spde.posterior(fit, "fmatern", what = "matern.covariance"))
-multiplot(covplot, corplot)
+ggsave(StDevs_PO,
+       filename=paste0("Model-outputs/PO-SdPreds100m.png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
+
+#Calculate how many scaled points were predicted to be greater than the average 
+length(which(scaled_df_PO$scaled_mean_PO > 0))
 
 #=== Calculate total swamp maire abundance in the GWR ===#
+# We didn't end up using this code for the paper, but have left it in for reference 
 # See also https://inlabru-org.github.io/inlabru/articles/2d_lgcp_sf.html#estimating-abundance
 # We leave the following line out of this code chunk:
 # PAobs_intercept +
@@ -320,66 +404,3 @@ PostN <- ggplot(data = Trees) +
   geom_line(aes(x = N, y = mean, colour = "Posterior")) +
   geom_line(aes(x = N, y = plugin_estimate, colour = "Plugin")) +
   theme_bw()
-
-
-#=== Prediction score ===#
-# spat_model$bru_info$model$formula
-# spat_model$componentsJoint
-# spat_model$bru_info$lhoods$POobs_geometry$inla.family
-# spat_model$bru_info$lhoods$PAobs_NPres$inla.family
-
-# Integrated predictions
-# First we partition the landscape into grids of some resolution (in km * km)
-source("Code/utils.R")
-B1 <- partition(samplers = GWR, resolution = 50*50)
-# plot(B1)
-
-# add the total observed number of occurrence points
-B1$NPres <- lengths(st_intersects(B1, obs))
-
-# predict the total number of occurrences (counts) per grid
-# As per our prediction of total abundance in the GWR,
-# We leave the following line out fo this chunk:
-# PAobs_intercept +
-# This is so that the model only predicts the number of points where the species is present
-
-Lambda <- predict(
-  fit,
-  fm_int(domain = mesh1, sampler = B1),  # this is to integrate the prediction over grid area
-  formula = ~ tapply(weight * exp(fmatern +
-                                    fTmin +
-                                    fprecip +
-                                    fhumid +
-                                    fsolar +
-                                    fwet +
-                                    fdrain +
-                                    fTrange +
-                                    froad + #For CRPS we want road back in
-                                    Intercept),
-                     .block,
-                     sum)
-)
-
-abun_total <-
-  Lambda %>%
-  rownames_to_column(".block")
-
-# add predicted total counts to the grid object
-B1 <-
-  B1 %>%
-  rownames_to_column(".block") %>%
-  left_join(abun_total)
-
-# some plots
-plot(select(B1, "mean"))
-plot(select(B1, "median"))
-with(B1, plot(NPres, median)); abline(0, 1)
-
-# calculate CRPS
-# see also https://inlabru-org.github.io/inlabru/articles/prediction_scores.html
-CRPS_block <- crps_pois(B1$NPres, B1$median)
-hist(CRPS_block, breaks = 50)   # we want these values to be a close to zero as possible
-
-median(CRPS_block, na.rm = TRUE)
-with(B1, plot(median, CRPS_block))
-

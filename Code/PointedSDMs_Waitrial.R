@@ -1,5 +1,4 @@
-# Modification of Hao Ran's inlabru script to explore the feasibility of 
-# integrated SDM using point process model
+# Modification of Hao Ran's inlabru script to explore the feasibility of integrated SDM using point process model
 # Written by: HR Lai and SM Herbert
 # Written for R version 4.3.1 (SMH) and 4.2.2 (HRL)
 
@@ -7,7 +6,13 @@
 #=== Preamble - use bits as needed for your computer ===#
 
 rm(list=ls())
-#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository
+
+#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
+local.dir <- "D:/" #Change so that file path matches where these files are saved on your computer
+
+setwd(paste0(local.dir,"Repositories/GWRSM-SDM"))
+
+run.date <- as.character(Sys.Date())
 
 #Use if needed to install PointedSDMs package
 
@@ -21,6 +26,11 @@ rm(list=ls())
 #                INLA="https://inla.r-inla-download.org/R/stable"),
 #                dep=TRUE)
 
+#We are having some issues with terra if you try to read the saved bru.sdm files from .rds
+#This version is the most stable:
+#packageurl <- "http://cran.r-project.org/src/contrib/Archive/terra/terra_1.7-46.tar.gz"
+#install.packages(packageurl, repos=NULL, type="source")
+
 #Load required packages
 library(PointedSDMs) #version 1.3
 require(inlabru)     #version 2.10.1
@@ -28,11 +38,11 @@ require(fmesher)
 require(R6)
 library(sf)
 library(INLA)        #version 23.04.24 (HR Lai's computer) or version 23.09.09 (VUW PC)
-library(terra)
+library(terra)       #version 1.7-46
 library(tidyverse)
 library(scoringRules)
 library(tidyterra)
-
+source("Code/utils.R")
 
 #=== Read in Data sources ===#
 
@@ -44,42 +54,42 @@ GWR <-
   st_difference(y = st_union(freshwater))
 
 # Covariates
-wet1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif")
+wet1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
 wet1 <- crop(wet1, GWR)
 wet <- scale(wet1)
 
-drain1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif")
+drain1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
 drain1 <- crop(drain1, GWR)
 drain <- scale(drain1)
 
-Tmin1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif")
+Tmin1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
 Tmin1 <- crop(Tmin1, GWR)
 Tmin <- scale(Tmin1)
 
-precip1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif")
+precip1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
 precip1 <- crop(precip1, GWR)
 precip <- scale(precip1)
 
-humid1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif")
+humid1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
 humid1 <- crop(humid1, GWR)
 humid <- scale(humid1)
 
-solar1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif")
+solar1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
 solar1 <- crop(solar1, GWR)
 solar <- scale(solar1)
 
-Trange1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif")
+Trange1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
 Trange1 <- crop(Trange1, GWR)
 Trange <- scale(Trange1)
 
-road1 <- rast("GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif")
+road1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
 road1 <- crop(road1, GWR)
 road <- scale(road1) #type in assigned name (e.g. 'road)' to check sf details
 
 # SYZmai records
 
 obs_all <-
-  read_csv("SM_obs/SM-PO-PA.csv") %>%
+  read_csv("SM_obs_public/SM-PO-PA.csv") %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%
@@ -104,11 +114,11 @@ POobs <- POobs %>%
   st_intersection(y = GWR)
 
 #MRPM infection risk raster
-IR <- rast("GISinputs-repositories/MR-IR-70/MRRisk70r.tif")
+IR <- rast(paste0(local.dir,"GISinputs-repositories/MR-IR-70/MRRisk70r.tif"))
 IR <- crop(IR, GWR)
 
 #Distance to road raster
-EUCroad <- rast("GISinputs-repositories/Euclid_distance_road/dis2road7Euc500r.tif")
+EUCroad <- rast(paste0(local.dir,"GISinputs-repositories/Euclid_distance_road/dis2road7Euc500r.tif"))
 EUCroad <- crop(EUCroad, GWR)
 
 #=== Graph data sources for Fig2 of manuscript ===#
@@ -152,7 +162,7 @@ mesh1 <- inla.mesh.2d(
   loc = coords,
   max.edge = c(1, 5) * max.edge,
   offset = c(max.edge, bound.outer),
-  cutoff = 500,   # need to revise later
+  cutoff = 500,   
   crs = st_crs(GWR)
 )
 
@@ -161,8 +171,8 @@ mesh1$n
 ggplot() +
   gg(data = GWR, fill = "darkgreen", colour = NA, alpha = 0.2) +
   gg(mesh1) +
-  gg(data = subset(PAobs, NPres== 0), pch = 21, fill = "white") +
-  gg(data = subset(PAobs, NPres == 1), pch = 21, fill = "black") +
+  gg(data = subset(PAobs, NPres== 1), pch = 21, fill = "white") +
+  gg(data = subset(PAobs, NPres == 0), pch = 21, fill = "black") +
   gg(data = POobs, pch = 21, fill = "purple") +
   ggtitle(label = "B") +
   xlab("Longitude") +
@@ -212,17 +222,74 @@ spat_model <- fitISDM(data = spatial_data,
                       options = list(control.inla = list(int.strategy='eb'))
                       )
 
+spat_model
+
+#Export model object as an .rds file so we can make more predictions later if needed
+saveRDS(spat_model,paste0("Model-outputs/iPPM_fixed_effects_",run.date,".rds"))
+#spat_model <- read_rds("Model-outputs/iPPM_fixed_effects_2024-08-12.rds") #e.g. code if need to re-load
+
 #Export model coefficients for fixed effects
-write.csv(spat_model$summary.fixed,"Model-outputs/iPPM_fixed_effects.csv")
+write.csv(spat_model$summary.fixed,paste0("Model-outputs/iPPM_fixed_effects_",run.date,".csv"))
 
-#=== Cross validation of model ===#
-# By Leave-one-out cross validation (i.e. examining the effect of leaving out data types)
-# This chunk currently doesn't work because the spat_model input is a copy model
-# Needs fixing at intModel()
-# Although, I'm not entirely sure that fixing this is a priority
+#=== Calculate prediction score ===#
 
-#PA_out <- datasetOut(spat_model, dataset = 'PAobs', predictions = TRUE)
+# Integrated predictions
+# First we partition the landscape into grids of some resolution
 
+B1 <- partition(samplers = GWR, resolution = 50*50)
+# note that resolution defines the area of the grid squares in square metres
+# plot(B1) - this resolution is 2500 square metres
+# here's some code to export for checking resolution if needed
+# st_write(B1,"GISinputs-repositories/B1_sampler.shp",append=FALSE)
+
+# add the total observed number of occurrence points
+B1$NPres <- lengths(st_intersects(B1, filter(obs_all, NPres != 0)))
+
+# predict the total number of occurrences (counts) per grid
+# As per our prediction of total abundance in the GWR,
+# We leave the following line out of this chunk:
+# PAobs_intercept +
+# This is so that the model only predicts the number of points where the species is present
+
+Lambda <- predict(
+  spat_model,
+  fm_int(domain = mesh1, sampler = B1),  # this is to integrate the prediction over grid area
+  formula = ~ tapply(weight * exp(shared_spatial +
+                                    POobs_intercept +
+                                    topo_wetness +
+                                    precip_warmQtr +
+                                    solRad_winter +
+                                    temp_minColdMonth +
+                                    temp_annRange +
+                                    humidity_meanAnn +
+                                    distance_road + #For CRPS we want road back in
+                                    soil_drainage),
+                     .block,
+                     sum)
+)
+
+abun_total <-
+  Lambda$predictions %>%
+  rownames_to_column(".block")
+
+# add predicted total counts to the grid object
+B1 <-
+  B1 %>%
+  rownames_to_column(".block") %>%
+  left_join(abun_total)
+
+# some plots
+plot(select(B1, "mean"))
+plot(select(B1, "median"))
+with(B1, plot(NPres, median)); abline(0, 1)
+
+# calculate CRPS
+# see also https://inlabru-org.github.io/inlabru/articles/prediction_scores.html
+CRPS_block <- crps_pois(B1$NPres, B1$median)
+hist(CRPS_block, breaks = 50)   # we want these values to be a close to zero as possible
+
+median(CRPS_block, na.rm = TRUE)
+with(B1, plot(median, CRPS_block))
 
 #==== Make predictions ====#
 # The fixed factor covariate 'distance from road' is conditioned out of the predictive model (Warton et al. 2013)
@@ -230,8 +297,7 @@ write.csv(spat_model$summary.fixed,"Model-outputs/iPPM_fixed_effects.csv")
 # i.e. make predictions over the whole range that would be true if every point in our space is equidistant from a road
 
 projections <- predict(spat_model,
-                       mesh=mesh1,
-                       mask = GWR,
+                       data=fm_pixels(mesh=mesh1, mask = GWR, dims = c(1445,1021)), #dims = c(722.5,510.5)) is for 200x200 projection
                        formula = ~
                          shared_spatial +
                          POobs_intercept +
@@ -251,7 +317,7 @@ projections <- predict(spat_model,
 projection_means <- plot(projections, plot=FALSE) #create ggplot object from projections
 #Or to make a basic plot, just use plot(projections, plot = TRUE)
 
-#=== Plot predictions for Figure 3c ===#
+#=== Plot predictions for Figure 2 ===#
 # Code for a few options for this figure are provided
 # Previous formula used for converting predicted local abundance to predicted site occupancy
 # projected_occupancy <- 1-exp(-D) #Relationship of occupancy and abundance (parameter D) after Caughley (1977)
@@ -259,7 +325,7 @@ projection_means <- plot(projections, plot=FALSE) #create ggplot object from pro
 #Plot predicted mean point intensity on linear predictor scale
 LinearPreds <- projection_means$predictions$mean +
                 geom_sf(data = GWR, alpha = 0.1) +
-                 #geom_sf(data = subset(PAobs, NPres == 0), color = "black",show.legend=TRUE) +
+                #geom_sf(data = subset(PAobs, NPres == 0), color = "black",show.legend=TRUE) +
                 #geom_sf(data = POobs, color = "grey70",pch=15,show.legend="point") +
                 #geom_sf(data = subset(PAobs, NPres == 1), color = "grey70") +
                 ggtitle("B") +
@@ -300,18 +366,30 @@ SdPreds <- ggplot() +
             theme_bw()
 
 #Export projected values to a csv file
-write.csv(scaled_df,"Model-outputs/iPPM_scaled_predictions.csv")
+write.csv(scaled_df,paste0("Model-outputs/iPPM_scaled_predictions100",run.date,".csv"))
 #Export projected values to a shapefile for analysis in ArcGIS or QGIS
-st_write(scaled_df,"Model-outputs/iPPM_predictions.shp",append=FALSE)
+st_write(scaled_df,paste0("Model-outputs/iPPM_predictions_lattice100",run.date,".shp",append=FALSE))
+
+#Export maps of projections
+
+ggsave(LinearPreds,
+       filename=paste0("Model-outputs/LinearPreds100m",run.date,".png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
+
+ggsave(ScaledPreds,
+       filename=paste0("Model-outputs/ScaledPreds100m",run.date,".png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
+
+ggsave(SdPreds,
+       filename=paste0("Model-outputs/SdPreds100m",run.date,".png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
 
 #Calculate how many scaled points were predicted to be greater than the average 
 length(which(scaled_df$scaled_mean > 0))
 
-#Aggregate predictions to 1km grid and export to shapefile
-#New_grid <-
-#  st_read("GISinputs-repositories/GWR_1km_MRPM_grid/GWR_1km_MRPM_grid.shp")
-#pred_agg <- aggregate(projections$predictions,New_grid,FUN = sum)
-#st_write(pred_agg,"Model-outputs/Agg_iPPM_predictions.shp")
 
 #=== Calculate total swamp maire abundance in the GWR ===#
 # See also https://inlabru-org.github.io/inlabru/articles/2d_lgcp_sf.html#estimating-abundance
@@ -338,7 +416,7 @@ Lambda_total <- predict(
 )
 Lambda_total
 
-write.csv(Lambda_total$predictions,"Model-outputs/iPPM_totabundance_predictions.csv")
+#write.csv(Lambda_total$predictions,paste0("Model-outputs/iPPM_totabundance_predictions",run.date,".csv")
 
 # Generate posterior abundance distribution
 # The 95% CrI of Lambda_total is used to define a broader range of plugin values
@@ -349,8 +427,8 @@ Trees <- predict(
   spat_model,
   fm_int(mesh1, GWR),
   formula = ~ data.frame(
-    N = seq(100, 1000, 10),
-    dpois(seq(100, 1000, 10),
+    N = seq(110, 2530, 10), #original run used seq(100,1000,10)
+    dpois(seq(110, 2530, 10),
           lambda = sum(weight * exp(
               shared_spatial +
               POobs_intercept +
@@ -379,73 +457,7 @@ Trees$predictions$plugin_estimate <- dpois(Trees$predictions$N, lambda = Lambda_
 PostN <- ggplot(data = Trees$predictions) +
           geom_line(aes(x = N, y = mean, colour = "Posterior")) +
           geom_line(aes(x = N, y = plugin_estimate, colour = "Plugin")) +
-  theme_bw()
-
-
-#=== Prediction score ===#
-# spat_model$bru_info$model$formula
-# spat_model$componentsJoint
-# spat_model$bru_info$lhoods$POobs_geometry$inla.family
-# spat_model$bru_info$lhoods$PAobs_NPres$inla.family
-
-# Integrated predictions
-# First we partition the landscape into grids of some resolution
-source("Code/utils.R")
-B1 <- partition(samplers = GWR, resolution = 50*50)
-# note that resolution defines the area of the grid squares in square metres
-# plot(B1) - this resolution is 2500 square metres
-# here's some code to export for checking resolution if needed
-# st_write(B1,"GISinputs-repositories/B1_sampler.shp",append=FALSE)
-
-# add the total observed number of occurrence points
-B1$NPres <- lengths(st_intersects(B1, filter(obs_all, NPres != 0)))
-
-# predict the total number of occurrences (counts) per grid
-# As per our prediction of total abundance in the GWR,
-# We leave the following line out of this chunk:
-# PAobs_intercept +
-# This is so that the model only predicts the number of points where the species is present
-
-Lambda <- predict(
-  spat_model,
-  fm_int(domain = mesh1, sampler = B1),  # this is to integrate the prediction over grid area
-  formula = ~ tapply(weight * exp(shared_spatial +
-                                    POobs_intercept +
-                                    topo_wetness +
-                                    precip_warmQtr +
-                                    solRad_winter +
-                                    temp_minColdMonth +
-                                    temp_annRange +
-                                    humidity_meanAnn +
-                                    distance_road + #For CRPS we want road back in
-                                    soil_drainage),
-                     .block,
-                     sum)
-  )
-
-abun_total <-
-  Lambda$predictions %>%
-  rownames_to_column(".block")
-
-# add predicted total counts to the grid object
-B1 <-
-  B1 %>%
-  rownames_to_column(".block") %>%
-  left_join(abun_total)
-
-# some plots
-plot(select(B1, "mean"))
-plot(select(B1, "median"))
-with(B1, plot(NPres, median)); abline(0, 1)
-
-# calculate CRPS
-# see also https://inlabru-org.github.io/inlabru/articles/prediction_scores.html
-CRPS_block <- crps_pois(B1$NPres, B1$median)
-hist(CRPS_block, breaks = 50)   # we want these values to be a close to zero as possible
-
-median(CRPS_block, na.rm = TRUE)
-with(B1, plot(median, CRPS_block))
-
+          theme_bw()
 
 #=== Determine land area suitable for protection ===#
 
@@ -476,8 +488,6 @@ Lambda <- predict(
 )
 
 # Match the myrtle rust risk and road accessibility values to the shapefile B2
-
-
 B2SpatVec <- vect(as(B2, "Spatial"))
 B2Pts <- centroids(B2SpatVec, inside=FALSE) #currently a workaround to account for imperfect alignment of the grids
 
@@ -514,7 +524,7 @@ st_write(abun_total,"Model-outputs/Abundance1km_2.shp")
 plot(abun_total[20]) 
 
 # construct cumulative curve in three ways
-cumsum_list <- list(abun_total, abun_total, abun_total)
+cumsum_list <- list(abun_total, abun_total, abun_total, abun_total)
 
 # 1. accumulation by abundance only
 cumsum_list[[1]] <-
@@ -576,95 +586,41 @@ cumsum_df$type = factor(cumsum_df$type,levels=c("All suitably waterlogged soils"
                                                 "Accessible",
                                                 "Accessible & infection risk < 0.7")) 
 
-# plot
-ggplot(cumsum_df) +
-  geom_segment(aes(x = 2479, y = 0, xend = 2479, yend = 470), linetype = 4, color = "#000508",size = 1) +
-  geom_segment(aes(x = 857, y = 0, xend = 857, yend = 230), linetype = 2, color = "#006d9b",size = 1) +
-  geom_segment(aes(x = 1090, y = 0, xend = 1090, yend = 55), linetype = 3, color = "#00b3fc",size = 1) +
-  geom_segment(aes(x = 390, y = 0, xend = 390, yend = 15),linetype = 1,color="#5fd0ff",size = 1) +  
-  geom_line(aes(area_cumcum, mean_cumsum,
-                color = type), size = 1.2) +
-  labs(x = "Cumulative land area (sq. km)",
-       y = "Cumulative abundance",
-       color = "Management scenario") +
-  coord_cartesian(expand = TRUE,
+# plot - have updated x values of thresholds
+cumuplot<- ggplot(cumsum_df) +
+            geom_segment(aes(x = 2388, y = 0, xend = 2388, yend = 440), linetype = 4, color = "#000508",size = 1) +
+            geom_segment(aes(x = 1244, y = 0, xend = 1244, yend = 220), linetype = 2, color = "#006d9b",size = 1) +
+            geom_segment(aes(x = 1023, y = 0, xend = 1023, yend = 55), linetype = 3, color = "#00b3fc",size = 1) +
+            geom_segment(aes(x = 369, y = 0, xend = 369, yend = 11),linetype = 1,color="#5fd0ff",size = 1) +  
+            geom_line(aes(area_cumcum, mean_cumsum,
+                  color = type), size = 1.2) +
+            labs(x = expression(paste("Cumulative land area (",km^2,")")),
+                  y = "Cumulative abundance",
+                  color = "Management scenario") +
+            coord_cartesian(expand = TRUE,
                   clip = "off",
                   ylim = c(0, NA),
                   xlim = c(0, 8500)) +
-  scale_color_manual(values = c("#000508","#006d9b","#00b3fc","#5fd0ff")) +
-  theme_bw() +
-  theme(legend.position = c(0.81, 0.3))
+            scale_color_manual(values = c("#000508","#006d9b","#00b3fc","#5fd0ff")) +
+            theme_bw() +
+            theme(legend.position = c(0.75, 0.3))
+
+ggsave(cumuplot,
+        filename=paste0("Model-outputs/Figure6.png"),
+        device="png",
+        height=10, width = 16, units = "cm",dpi="print")
 
 
 #=== Distance decay in the Matern spatial covariance ===#
 corplot <- plot(spde.posterior(spat_model, "shared_spatial", what = "matern.correlation"))
-plot(corplot) +
-  labs(x = "Distance (m)",
-       y = "Residual correlation") +
-  coord_cartesian(expand = FALSE,
+FigS7<- plot(corplot) +
+          labs(x = "Distance (m)",
+          y = "Residual correlation") +
+          coord_cartesian(expand = FALSE,
                   ylim = c(0, 1)) +
-  theme_classic()
+          theme_classic()
 
-
-#=== Create predictions of abundance for every 100x100 m ===#
-
-# Note that this chunk won't run on a regular PC or laptop
-# In theory it should run on a HPC, we are looking into this
-# Partition the landscape into grids of 100 x 100 m resolution
-# note that resolution defines the area of the grid squares in square metres
-B3 <- partition(samplers = GWR, resolution = 100)
-#plot(B2)
-#st_write(B2,"GISinputs-repositories/B2_sampler.shp",append=FALSE)
-
-# add the total observed number of occurrence points
-B3$NPres <- lengths(st_intersects(B3, filter(obs_all, NPres != 0)))
-
-Lambda <- predict(
-  spat_model,
-  fm_int(domain = mesh1, sampler = B3),  # this is to integrate the prediction over 1 x 1 km grid area
-  formula = ~ tapply(weight * exp(shared_spatial +
-                                    POobs_intercept +
-                                    topo_wetness +
-                                    precip_warmQtr +
-                                    solRad_winter +
-                                    temp_minColdMonth +
-                                    temp_annRange +
-                                    humidity_meanAnn +
-                                    (distance_road * 0 + minmax(road)[1]) +
-                                    soil_drainage),
-                     .block,
-                     sum)
-)
-
-
-B3SpatVec <- vect(as(B3, "Spatial"))
-B3Pts <- centroids(B3SpatVec, inside=FALSE) #currently a workaround to account for imperfect alignment of the grids
-
-B3IR <- terra::extract(IR, B3Pts)
-#Change values to binary multipliers (0 = unacceptably high risk, 1 = acceptable risk)
-B3IR["MRRisk70r"][B3IR["MRRisk70r"] == 100] <- 1
-B3IR["MRRisk70r"][B3IR["MRRisk70r"] == 128] <- NA
-
-B3Rd <- terra::extract(EUCroad, B3Pts)
-Access <- as.numeric(B3Rd$Area)
-B3Rd <- cbind(B3Rd,Access)
-#Change values to binary multipliers (0 = inaccessible, 1 = accessible)
-B3Rd["Access"][B3Rd["Access"] == 1] <- 0
-B3Rd["Access"][B3Rd["Access"] == 2] <- 1
-
-B3 <-cbind(B3,B3IR$MRRisk70r,B3Rd$Access)
-
-# join B3 to predicted abundances
-abun_total <-
-  B3 %>%
-  rownames_to_column(".block") %>%
-  left_join(
-    Lambda$predictions %>%
-      rownames_to_column(".block")
-  )
-
-# Scale and write the abundance per 100 x 100 km cell to shapefile
-scaled_mean_100m <- scale(abun_total$mean)
-abun_total<-cbind(abun_total,scaled_mean_1km)
-st_write(abun_total,"Model-outputs/Abundance100m.shp") 
-plot(abun_total[20]) #
+ggsave(FigS7,
+       filename=paste0("Model-outputs/FigureS7.png"),
+       device="png",
+       height=10, width = 16, units = "cm",dpi="print")
