@@ -54,15 +54,17 @@ scount<-app(scrop,counter) #Preferred method - proportion of weeks where predict
 
 IRvMRobs <- terra::extract(scount, MRobsV, method="simple")
 
-Scenarios <- quantile(IRvMRobs$lyr.1, probs = c(0, 0.05, 0.1, 0.15),na.rm=TRUE)
+Scenarios <- quantile(IRvMRobs$lyr.1, probs = c(0, 0.05, 0.1, 0.15, 0.2, 0.25),na.rm=TRUE)
 
 Scenario1 <- terra::ifel(scount < 0.01716738,1,0) #acceptable proportion of IR50-weeks at 0th percentile of MR obs
 Scenario2 <- terra::ifel(scount < 0.02145923,1,0) #acceptable proportion of IR50-weeks at 5th percentile of MR obs
 Scenario3 <- terra::ifel(scount < 0.02769671,1,0) #acceptable proportion of IR50-weeks at 10th percentile of MR obs
 Scenario4 <- terra::ifel(scount < 0.03004292,1,0) #acceptable proportion of IR50-weeks at 15th percentile of MR obs
+Scenario5 <- terra::ifel(scount < 0.03433476,1,0) #acceptable proportion of IR50-weeks at 20th percentile of MR obs
+Scenario6 <- terra::ifel(scount < 0.03433476,1,0) #acceptable proportion of IR50-weeks at 25th percentile of MR obs
 
 #plot scenarios against myrtle rust observation points
-par(mfrow=c(2,2))
+par(mfrow=c(3,2))
 
 plot(Scenario1,main="Scenario 1: 0th percentile of myrtle rust observations")
 polys(GWR, border="black", lwd=1, lty=1, alpha=1)
@@ -80,6 +82,13 @@ plot(Scenario4,main="Scenario 4: 15th percentile of myrtle rust observations")
 polys(GWR, border="black", lwd=1, lty=1, alpha=1)
 points(MRobsV, col= "black", pch=16)
 
+plot(Scenario5,main="Scenario 5: 20th percentile of myrtle rust observations")
+polys(GWR, border="black", lwd=1, lty=1, alpha=1)
+points(MRobsV, col= "black", pch=16)
+
+plot(Scenario6,main="Scenario 6: 25th percentile of myrtle rust observations")
+polys(GWR, border="black", lwd=1, lty=1, alpha=1)
+points(MRobsV, col= "black", pch=16)
 
 #Export scount and binarised IR scenario rasters
 
@@ -88,3 +97,5 @@ writeRaster(Scenario1,"D:/Repositories/GWRSM-SDM/Scenario1.tif", overwrite =TRUE
 writeRaster(Scenario2,"D:/Repositories/GWRSM-SDM/Scenario2.tif", overwrite =TRUE, filetype = "GTiff")
 writeRaster(Scenario3,"D:/Repositories/GWRSM-SDM/Scenario3.tif", overwrite =TRUE, filetype = "GTiff")
 writeRaster(Scenario4,"D:/Repositories/GWRSM-SDM/Scenario4.tif", overwrite =TRUE, filetype = "GTiff")
+writeRaster(Scenario5,"D:/Repositories/GWRSM-SDM/Scenario5.tif", overwrite =TRUE, filetype = "GTiff")
+writeRaster(Scenario6,"D:/Repositories/GWRSM-SDM/Scenario6.tif", overwrite =TRUE, filetype = "GTiff")
