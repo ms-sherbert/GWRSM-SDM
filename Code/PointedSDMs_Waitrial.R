@@ -7,9 +7,11 @@
 
 rm(list=ls())
 
-#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
-local.dir <- "D:/" #Change so that file path matches where these files are saved on your computer
+#Set up some shorthand objects for file paths
+local.dir <- "D:/" #Change so that file path matches directory where repositories are cloned to your computer
+local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally
 
+#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
 setwd(paste0(local.dir,"Repositories/GWRSM-SDM"))
 
 run.date <- as.character(Sys.Date())
@@ -47,49 +49,49 @@ source("Code/utils.R")
 #=== Read in Data sources ===#
 
 # Study domain
-freshwater <-
-  st_read("LCDB5-open-water/LCDB5-open-water-and-rivers.shp")
+clipout <-
+  st_read("LCDB5-clipping-layers/LCDB5-open-water-and-rivers.shp")
 GWR <-
   st_read("GWRboundary/GWRboundary2193.shp") %>%
-  st_difference(y = st_union(freshwater))
+  st_difference(y = st_union(clipout))
 
 # Covariates
-wet1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
-wet1 <- crop(wet1, GWR)
+wet1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
+wet1 <- crop(wet1, GWR, mask = TRUE)
 wet <- scale(wet1)
 
-drain1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
-drain1 <- crop(drain1, GWR)
+drain1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
+drain1 <- crop(drain1, GWR, mask = TRUE)
 drain <- scale(drain1)
 
-Tmin1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
-Tmin1 <- crop(Tmin1, GWR)
+Tmin1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
+Tmin1 <- crop(Tmin1, GWR, mask = TRUE)
 Tmin <- scale(Tmin1)
 
-precip1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
-precip1 <- crop(precip1, GWR)
+precip1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
+precip1 <- crop(precip1, GWR, mask = TRUE)
 precip <- scale(precip1)
 
-humid1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
-humid1 <- crop(humid1, GWR)
+humid1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
+humid1 <- crop(humid1, GWR, mask = TRUE)
 humid <- scale(humid1)
 
-solar1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
-solar1 <- crop(solar1, GWR)
+solar1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
+solar1 <- crop(solar1, GWR, mask = TRUE)
 solar <- scale(solar1)
 
-Trange1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
-Trange1 <- crop(Trange1, GWR)
+Trange1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
+Trange1 <- crop(Trange1, GWR, mask = TRUE)
 Trange <- scale(Trange1)
 
-road1 <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
-road1 <- crop(road1, GWR)
+road1 <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
+road1 <- crop(road1, GWR, mask = TRUE)
 road <- scale(road1) #type in assigned name (e.g. 'road)' to check sf details
 
 # SYZmai records
 
 obs_all <-
-  read_csv("SM_obs_public/SM-PO-PA.csv") %>%
+  read_csv(paste0(local.files,"SM-PO-PA-GWR-full.csv")) %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%
@@ -113,15 +115,22 @@ POobs <- POobs %>%
   st_transform(crs = st_crs(GWR)) %>%
   st_intersection(y = GWR)
 
-#MRPM infection risk raster
-IR <- rast(paste0(local.dir,"GISinputs-repositories/MR-IR-70/MRRisk70r.tif"))
-IR <- crop(IR, GWR)
+#Management scenarios
+
+#Scenario 1 infection risk (is the binary raster for Scenario 1 - IR values that excludes 100% of myrtle rust observations)
+IRS1 <- rast(paste0(local.files,"Scenario1.tif"))
+IRS1 <- crop(IRS1, GWR, mask = TRUE)
+
+#Scenario 2 infection risk (is the binary raster for Scenario 6 - IR values that excludes 75% of myrtle rust observations)
+IRS2 <- rast(paste0(local.files,"Scenario6.tif"))
+IRS2 <- crop(IRS2, GWR, mask = TRUE)
 
 #Distance to road raster
-EUCroad <- rast(paste0(local.dir,"GISinputs-repositories/Euclid_distance_road/dis2road7Euc500r.tif"))
-EUCroad <- crop(EUCroad, GWR)
+EUCroad <- rast(paste0(local.files,"Euclid_distance_road/dis2road7Euc500r.tif"))%>%
+           project("EPSG:2193")
+EUCroad <- crop(EUCroad, GWR, mask = TRUE)
 
-#=== Graph data sources for Fig2 of manuscript ===#
+#=== Graph data sources for Fig S4 ===#
 
 GWRplot <- as(GWR, "Spatial")
 GWRplot <- vect(GWRplot)
@@ -187,7 +196,7 @@ proj <- sp::CRS("+proj=tmerc +lat_0=0 +lon_0=173 +k=0.9996 +x_0=1600000
 # Two model options are provided here, but we only use the global model formulation for predictions
 
 covariates <- c(wet,precip,solar,Tmin,Trange,humid,road,drain) #global model
-covariates_minimal <-c(solar,drain,road) #minimal model containing only significant effects in global model
+#covariates_minimal <-c(solar,drain,road) #minimal model containing only significant effects in global model
 
 
 #================= Modelling ==================#
