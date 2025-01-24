@@ -234,8 +234,8 @@ spat_model <- fitISDM(data = spatial_data,
 spat_model
 
 #Export model object as an .rds file so we can make more predictions later if needed
-saveRDS(spat_model,paste0("Model-outputs/iPPM_fixed_effects_",run.date,".rds"))
-#spat_model <- read_rds("Model-outputs/iPPM_fixed_effects_2024-08-12.rds") #e.g. code if need to re-load
+saveRDS(spat_model,paste0("Model-outputs/iPPM_",run.date,".rds"))
+#spat_model <- read_rds("Model-outputs/iPPM_2024-08-12.rds") #e.g. code if need to re-load
 
 #Export model coefficients for fixed effects
 write.csv(spat_model$summary.fixed,paste0("Model-outputs/iPPM_fixed_effects_",run.date,".csv"))
@@ -375,9 +375,9 @@ SdPreds <- ggplot() +
             theme_bw()
 
 #Export projected values to a csv file
-write.csv(scaled_df,paste0("Model-outputs/iPPM_scaled_predictions100",run.date,".csv"))
+write.csv(scaled_df,paste0("Model-outputs/iPPM_scaled_predictions100_",run.date,".csv"))
 #Export projected values to a shapefile for analysis in ArcGIS or QGIS
-st_write(scaled_df,paste0("Model-outputs/iPPM_predictions_lattice100",run.date,".shp",append=FALSE))
+st_write(scaled_df,paste0("Model-outputs/iPPM_predictions_lattice100_",run.date,".shp"), append=FALSE)
 
 #Export maps of projections
 
@@ -436,8 +436,8 @@ Trees <- predict(
   spat_model,
   fm_int(mesh1, GWR),
   formula = ~ data.frame(
-    N = seq(110, 2530, 10), #original run used seq(100,1000,10)
-    dpois(seq(110, 2530, 10),
+    N = seq(110, 3300, 10), #original run used seq(100,1000,10)
+    dpois(seq(110, 3300, 10),
           lambda = sum(weight * exp(
               shared_spatial +
               POobs_intercept +
@@ -503,10 +503,12 @@ B2Pts <- centroids(B2SpatVec, inside=FALSE) #currently a workaround to account f
 #This also works to extract the mean MRPM IR value within each grid cell:
 #B2IR <- terra::extract(IR, B2SpatVec,fun=mean)
 
-B2IR <- terra::extract(IR, B2Pts)
+B2IRS1 <- terra::extract(IRS1, B2Pts) #values in lyr.1 column are already 0 = unacceptably high risk, 1 = acceptable risk
 #Change values to binary multipliers (0 = unacceptably high risk, 1 = acceptable risk)
-B2IR["MRRisk70r"][B2IR["MRRisk70r"] == 100] <- 1
-B2IR["MRRisk70r"][B2IR["MRRisk70r"] == 128] <- NA
+#B2IR["lyr.1"][B2IR["lyr.1"] == 100] <- 1
+#B2IR["lyr.1"][B2IR["lyr.1"] == 128] <- NA
+
+B2IRS2 <- terra::extract(IRS2, B2Pts) #values in lyr.1 column are already 0 = unacceptably high risk, 1 = acceptable risk 
 
 B2Rd <- terra::extract(EUCroad, B2Pts)
 Access <- as.numeric(B2Rd$Area)
@@ -515,7 +517,7 @@ B2Rd <- cbind(B2Rd,Access)
 B2Rd["Access"][B2Rd["Access"] == 1] <- 0
 B2Rd["Access"][B2Rd["Access"] == 2] <- 1
 
-B2 <-cbind(B2,B2IR$MRRisk70r,B2Rd$Access)
+B2 <-cbind(B2,B2IRS1$lyr.1,B2IRS2$lyr.1,B2Rd$Access) #Bind scenarios to B2
 
 # join B2 to predicted abundances
 abun_total <-
@@ -532,8 +534,8 @@ abun_total<-cbind(abun_total,scaled_mean_1km)
 st_write(abun_total,"Model-outputs/Abundance1km_2.shp") 
 plot(abun_total[20]) 
 
-# construct cumulative curve in three ways
-cumsum_list <- list(abun_total, abun_total, abun_total, abun_total)
+# construct cumulative curve in six ways
+cumsum_list <- list(abun_total, abun_total, abun_total, abun_total, abun_total, abun_total)
 
 # 1. accumulation by abundance only
 cumsum_list[[1]] <-
@@ -544,23 +546,11 @@ cumsum_list[[1]] <-
   mutate(mean_cumsum = cumsum(mean),
          area = as.numeric(st_area(.))/1e6,
          area_cumcum = cumsum(area),
-         type = "All suitably waterlogged soils")
+         type = "All")
 
-# 2. accumulation by both abundance in low myrtle rust risk areas only
+# 2. accumulation by abundance in accessible areas only
 cumsum_list[[2]] <-
   cumsum_list[[2]] %>%
-  filter(B2IR.MRRisk70r == 1) %>%
-  # sort by mean abundance per block in decreasing order
-  arrange(desc(mean)) %>%
-  # calculate cumulative sum
-  mutate(mean_cumsum = cumsum(mean),
-         area = as.numeric(st_area(.))/1e6,
-         area_cumcum = cumsum(area),
-         type = "Infection risk < 0.7")
-
-# 3. accumulation by both abundance in accessible areas only
-cumsum_list[[3]] <-
-  cumsum_list[[3]] %>%
   filter(B2Rd.Access == 1) %>%
   # sort by mean abundance per block in decreasing order
   arrange(desc(mean)) %>%
@@ -570,10 +560,34 @@ cumsum_list[[3]] <-
          area_cumcum = cumsum(area),
          type = "Accessible")
 
-# 4. accumulation by both abundance in low myrtle rust risk and accessible areas
+# 3. accumulation by abundance in Scenario 1 low myrtle rust risk areas only
+cumsum_list[[3]] <-
+  cumsum_list[[3]] %>%
+  filter(B2IRS1.lyr.1 == 1) %>%
+  # sort by mean abundance per block in decreasing order
+  arrange(desc(mean)) %>%
+  # calculate cumulative sum
+  mutate(mean_cumsum = cumsum(mean),
+         area = as.numeric(st_area(.))/1e6,
+         area_cumcum = cumsum(area),
+         type = "Low infection risk Scenario 1")
+
+# 4. accumulation by abundance in Scenario 2 low myrtle rust risk areas only
 cumsum_list[[4]] <-
   cumsum_list[[4]] %>%
-  filter(B2IR.MRRisk70r == 1,
+  filter(B2IRS2.lyr.1 == 1) %>%
+  # sort by mean abundance per block in decreasing order
+  arrange(desc(mean)) %>%
+  # calculate cumulative sum
+  mutate(mean_cumsum = cumsum(mean),
+         area = as.numeric(st_area(.))/1e6,
+         area_cumcum = cumsum(area),
+         type = "Low infection risk Scenario 2")
+
+# 5. accumulation by abundance in low myrtle rust risk Scenario 1 and accessible areas
+cumsum_list[[5]] <-
+  cumsum_list[[5]] %>%
+  filter(B2IRS1.lyr.1 == 1,
          B2Rd.Access == 1) %>%
   # sort by mean abundance per block in decreasing order
   arrange(desc(mean)) %>%
@@ -581,7 +595,20 @@ cumsum_list[[4]] <-
   mutate(mean_cumsum = cumsum(mean),
          area = as.numeric(st_area(.))/1e6,
          area_cumcum = cumsum(area),
-         type = "Accessible & infection risk < 0.7")
+         type = "Accessible & low infection risk Scenario 1")
+
+# 6. accumulation by abundance in low myrtle rust risk Scenario 2 and accessible areas
+cumsum_list[[6]] <-
+  cumsum_list[[6]] %>%
+  filter(B2IRS2.lyr.1 == 1,
+         B2Rd.Access == 1) %>%
+  # sort by mean abundance per block in decreasing order
+  arrange(desc(mean)) %>%
+  # calculate cumulative sum
+  mutate(mean_cumsum = cumsum(mean),
+         area = as.numeric(st_area(.))/1e6,
+         area_cumcum = cumsum(area),
+         type = "Accessible & low infection risk Scenario 2")
 
 # combine
 cumsum_df <- do.call(bind_rows, cumsum_list)
@@ -589,35 +616,50 @@ cumsum_df <- do.call(bind_rows, cumsum_list)
 #Backup dataframe to file
 write.csv(cumsum_df,"Model-outputs/Cumulative_area_scenarios.csv")
 
+Abundance_area_summary <- cumsum_df %>%
+  group_by(type) %>%
+  summarise('Max area' = max(area_cumcum, na.rm = TRUE),
+            'Max trees' = max(mean_cumsum, na.rm = TRUE))
+
+write.csv(Abundance_area_summary[,1:3],"Model-outputs/Abundance_area_summary.csv")
+
 #Re-order the factor levels for graphical display
-cumsum_df$type = factor(cumsum_df$type,levels=c("All suitably waterlogged soils",
-                                                "Infection risk < 0.7",
+cumsum_df$type = factor(cumsum_df$type,levels=c("All",
                                                 "Accessible",
-                                                "Accessible & infection risk < 0.7")) 
+                                                "Low infection risk Scenario 1",
+                                                "Low infection risk Scenario 2",
+                                                "Accessible & low infection risk Scenario 1",
+                                                "Accessible & low infection risk Scenario 2")) 
 
 # plot - have updated x values of thresholds
-cumuplot<- ggplot(cumsum_df) +
-            geom_segment(aes(x = 2388, y = 0, xend = 2388, yend = 440), linetype = 4, color = "#000508",size = 1) +
-            geom_segment(aes(x = 1244, y = 0, xend = 1244, yend = 220), linetype = 2, color = "#006d9b",size = 1) +
-            geom_segment(aes(x = 1023, y = 0, xend = 1023, yend = 55), linetype = 3, color = "#00b3fc",size = 1) +
-            geom_segment(aes(x = 369, y = 0, xend = 369, yend = 11),linetype = 1,color="#5fd0ff",size = 1) +  
+cumuplot<- ggplot(data=subset(cumsum_df, type == "All" | 
+                                type == "Low infection risk Scenario 1" |
+                                type == "Low infection risk Scenario 2" | 
+                                type == "Accessible")) +
+            #geom_segment(aes(x = 2388, y = 0, xend = 2388, yend = 610), linetype = 4, color = "#000000",linewidth = 1) +
+            #geom_segment(aes(x = 1244, y = 0, xend = 1244, yend = 220), linetype = 2, color = "#012840",linewidth = 1) +
+            #geom_segment(aes(x = 1023, y = 0, xend = 1023, yend = 55), linetype = 3, color = "#025373",linewidth = 1) +
+            #geom_segment(aes(x = 369, y = 0, xend = 369, yend = 11),linetype = 1,color="#03738C",linewidth = 1) +  
+            #geom_segment(aes(x = 1023, y = 0, xend = 1023, yend = 55), linetype = 3, color = "#3FA8BF",linewidth = 1) +
+            #geom_segment(aes(x = 369, y = 0, xend = 369, yend = 11),linetype = 1,color="#96D2D9",linewidth = 1) +   
             geom_line(aes(area_cumcum, mean_cumsum,
-                  color = type), size = 1.2) +
+                  color = type), linewidth = 1.2) +
+            #facet_wrap(~type,nrow=3) +
             labs(x = expression(paste("Cumulative land area (",km^2,")")),
-                  y = "Cumulative abundance",
-                  color = "Management scenario") +
+                  y = "Cumulative abundance", color = "Management scenario") +
             coord_cartesian(expand = TRUE,
                   clip = "off",
                   ylim = c(0, NA),
                   xlim = c(0, 8500)) +
-            scale_color_manual(values = c("#000508","#006d9b","#00b3fc","#5fd0ff")) +
+            scale_color_manual(values = c("#000000","#025373","#3FA8BF","#96D2D9")) +
             theme_bw() +
-            theme(legend.position = c(0.75, 0.3))
+            theme(legend.position = c(0.75,0.3))
 
 ggsave(cumuplot,
         filename=paste0("Model-outputs/Figure6.png"),
         device="png",
         height=10, width = 16, units = "cm",dpi="print")
+
 
 
 #=== Distance decay in the Matern spatial covariance ===#
