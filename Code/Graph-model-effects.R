@@ -16,7 +16,7 @@ coef.plot <- ggplot(data=subset(Coefs, Covariate != "PO intercept" & Covariate !
                 #ggtitle(label="A") +
                 ylab("Effect size") +
                 coord_flip() +
-                theme_bw() +
+                theme_classic() +
                 theme(legend.position="bottom",legend.title=element_blank())
 
 ggsave(coef.plot,

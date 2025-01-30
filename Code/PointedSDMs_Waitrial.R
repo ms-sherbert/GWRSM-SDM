@@ -650,9 +650,9 @@ cumuplot<- ggplot(data=subset(cumsum_df, type == "All" |
             coord_cartesian(expand = TRUE,
                   clip = "off",
                   ylim = c(0, NA),
-                  xlim = c(0, 8500)) +
+                  xlim = c(0, 5222)) +
             scale_color_manual(values = c("#000000","#025373","#3FA8BF","#96D2D9")) +
-            theme_bw() +
+            theme_classic() +
             theme(legend.position = c(0.75,0.3))
 
 ggsave(cumuplot,

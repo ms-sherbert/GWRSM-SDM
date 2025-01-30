@@ -22,7 +22,7 @@ refugia$Scenario = factor(refugia$Scenario,levels=c("Accessible & low infection 
                                                     "All suitably waterlogged soils")) 
 
 BPl <- ggplot(data = subset(refugia, Scenario != "Total"), 
-              aes(x=Scenario,y=Area_km2,fill = Intensity)) +
+              aes(x=Scenario,y=Waterlogged_area_km2,fill = Intensity)) +
         geom_bar(stat = "identity",position = "stack",color="black",width = 0.9,show.legend=FALSE) +
         facet_wrap(~factor(Intensity)) +      
         scale_fill_manual(values = c("#440154","#2a788e")) +
@@ -30,9 +30,9 @@ BPl <- ggplot(data = subset(refugia, Scenario != "Total"),
             x = "",
             fill = "Predicted relative abundance") +
         lims(y=c(0,700)) +
-        theme_bw() +
+        theme_classic() +
         coord_flip() +
-        geom_text(aes(x=Scenario,y=Area_km2+20,label=round(Area_km2,0)), 
+        geom_text(aes(x=Scenario,y=Waterlogged_area_km2+20,label=round(Waterlogged_area_km2,0)), 
             stat="identity",
             position="stack",hjust="left",size = 3,color="black")
        #theme(legend.position = c(0.7, 0.2))
