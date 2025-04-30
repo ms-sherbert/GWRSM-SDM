@@ -1,9 +1,9 @@
 # GWRSM-SDM
 
-Repository for the manuscript 'Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill C, Ruston P, Jackson B, Deslippe JR. Identifying suitable and accessible refugia to mitigate impacts of an emerging disease on a rare tree'.
+Repository for the manuscript Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill CG, Ruston P, Jackson B, Deslippe JR (Accepted April 2025) Identifying potentially suitable and accessible refugia to mitigate impacts of an emerging disease on a rare tree. Conservation Biology.
 Authors labelled with an asterisk (*) contributed equally. 
 
-Please note that this manuscript is currently in peer review. The FigShare links in this README file will become active after acceptance for publication. 
+Please note that this manuscript is currently in press. 
 
 [![DOI](https://zenodo.org/badge/772350956.svg)](https://zenodo.org/doi/10.5281/zenodo.10836317)
 
@@ -44,7 +44,7 @@ We have omitted geospatial coordinates from the data rows that contain sensitive
 Large geospatial input files are stored separately. These are .tif raster files and can be downloaded from FigShare:
 
 - floodrisk2023.tif: 10.6084/m9.figshare.25413709
-- MRRisk70r.tif: 10.6084/m9.figshare.25413733
+- Scenario1.tif and Scenario2.tif: 10.6084/m9.figshare.25413733
 - dis2road7Euc500r.tif: 10.6084/m9.figshare.25413748
 
 The raster files of bioclimatic covariates used in the point process model codes (`PPM_explore.R` and `PointedSDMs_Waitrial.R`) are from the New Zealand Environmental Data Stack (NZEnvDS) version 1.1 (NZTM projection), and can be downloaded here: https://doi.org/10.7931/m6rm-vz40. Should you use these data, please cite the following paper and any others of relevance:
