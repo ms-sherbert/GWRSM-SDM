@@ -117,12 +117,12 @@ POobs <- POobs %>%
 
 #Management scenarios
 
-#Scenario 1 infection risk (is the binary raster for Scenario 1 - IR values that excludes 100% of myrtle rust observations)
+#Scenario 1 infection risk (is the binary raster for Scenario 1 - IR values that exclude 100% of myrtle rust observations)
 IRS1 <- rast(paste0(local.files,"Scenario1.tif"))
 IRS1 <- crop(IRS1, GWR, mask = TRUE)
 
-#Scenario 2 infection risk (is the binary raster for Scenario 6 - IR values that excludes 75% of myrtle rust observations)
-IRS2 <- rast(paste0(local.files,"Scenario6.tif"))
+#Scenario 2 infection risk (is the binary raster exported as Scenario 6; i.e. IR values that exclude 75% of myrtle rust observations)
+IRS2 <- rast(paste0(local.files,"Scenario2.tif"))
 IRS2 <- crop(IRS2, GWR, mask = TRUE)
 
 #Distance to road raster
@@ -614,14 +614,14 @@ cumsum_list[[6]] <-
 cumsum_df <- do.call(bind_rows, cumsum_list)
 
 #Backup dataframe to file
-write.csv(cumsum_df,"Model-outputs/Cumulative_area_scenarios.csv")
+write.csv(cumsum_df,paste0("Model-outputs/Cumulative_area_scenarios_",run.date,".csv"))
 
 Abundance_area_summary <- cumsum_df %>%
   group_by(type) %>%
   summarise('Max area' = max(area_cumcum, na.rm = TRUE),
             'Max trees' = max(mean_cumsum, na.rm = TRUE))
 
-write.csv(Abundance_area_summary[,1:3],"Model-outputs/Abundance_area_summary.csv")
+write.csv(Abundance_area_summary[,1:3], paste0("Model-outputs/Output-summaires/Abundance_area_summaries_",run.date,".csv"))
 
 #Re-order the factor levels for graphical display
 cumsum_df$type = factor(cumsum_df$type,levels=c("All",

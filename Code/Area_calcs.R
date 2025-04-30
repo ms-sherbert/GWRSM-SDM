@@ -8,7 +8,7 @@ rm(list=ls())
 local.dir <- "D:/"
 setwd(paste0(local.dir,"Repositories/GWRSM-SDM")) #just to make sure your working directory is the cloned repository
 
-local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally
+local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally; get these from FigShare
 run.date <- as.character(Sys.Date())
 
 library(terra)
@@ -36,8 +36,8 @@ prop_suitable <- rast(paste0(local.files,"Proportion_suitable_soils.tif"))
 IRS1 <- rast(paste0(local.files,"Scenario1.tif"))
 IRS1 <- crop(IRS1, GWR, mask = TRUE)
 
-#Scenario 2 infection risk (is the binary raster for Scenario 6 - IR values that excludes 75% of myrtle rust observations)
-IRS2 <- rast(paste0(local.files,"Scenario6.tif"))
+#Scenario 2 infection risk (is the binary raster exported as Scenario 6 in Spatial-summary-IR.R, i.e. IR values that exclude 75% of myrtle rust observations)
+IRS2 <- rast(paste0(local.files,"Scenario2.tif"))
 IRS2 <- crop(IRS2, GWR, mask = TRUE)
 
 #Distance to road raster
@@ -80,4 +80,4 @@ Area_km2 <- Scenarios %>%
           summarise("Waterlogged_area_km2" = sum(Area,na.rm=TRUE)/100,
                     "Total_area_km2" = sum(ifelse(Area > 0,1,0)/100)) 
 
-write.csv(Area_km2,paste0("Model-outputs/Area_suitable-",run.date,".csv"))
+write.csv(Area_km2,paste0("Model-outputs/Output-summaries/Area_suitable-",run.date,".csv"))

@@ -28,3 +28,6 @@ Model-outputs/iPPM_scaled_predictions100_2025-01-22.csv
 Model-outputs/iPPM_fixed_effects_2025-01-22.rds
 Model-outputs/Area_suitable-2025-01-27.csv
 Model-outputs/Area_suitable.csv
+Model-outputs/2025-01-22_iPPM_run/Cumulative_area_scenarios_2025-01-22.csv
+Model-outputs/2025-01-22_iPPM_run/iPPM_fixed_effects_2025-01-22.csv
+Model-outputs/2025-01-22_iPPM_run/iPPM_scaled_predictions100_2025-01-22.csv

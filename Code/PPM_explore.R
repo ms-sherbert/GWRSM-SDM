@@ -6,8 +6,10 @@
 
 rm(list=ls())
 
-#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
 local.dir <- "D:/" #Change so that file path matches where these files are saved on your computer
+local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally
+
+#Remember that working directory needs to be set to the local copy of the GWRSM-SDM repository, e.g.
 setwd(paste0(local.dir,"Repositories/GWRSM-SDM"))
 
 run.date <- as.character(Sys.Date())
@@ -27,7 +29,7 @@ source("Code/utils.R")
 
 # Study domain
 freshwater <-
-  st_read("LCDB5-open-water/LCDB5-open-water-and-rivers.shp")
+  st_read("LCDB5-clipping-layers/LCDB5-open-water-and-rivers.shp")
 GWR <-
   st_read("GWRboundary/GWRboundary2193.shp") %>%
   st_difference(y = st_union(freshwater)) 
@@ -35,35 +37,35 @@ GWR <-
 # Note that repository file paths are currently set to work from VUW PC
 # File paths for Hao Ran's computer follow this format: "covs_SM_Feb2023/distance_road.tif"
 
-wet <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
+wet <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/topo_wetness.tif"))
 wet <- crop(wet, GWR)
 wet <- scale(wet)
 
-drain <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
+drain <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/soil_drainage.tif"))
 drain <- crop(drain, GWR)
 drain <- scale(drain)
 
-Tmin <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
+Tmin <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/temp_minColdMonth.tif"))
 Tmin <- crop(Tmin, GWR)
 Tmin <- scale(Tmin)
 
-precip <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
+precip <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/precip_warmQtr.tif"))
 precip <- crop(precip, GWR)
 precip <- scale(precip)
 
-humid <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
+humid <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/humidity_meanAnn.tif"))
 humid <- crop(humid, GWR)
 humid <- scale(humid)
 
-solar <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
+solar <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/solRad_winter.tif"))
 solar <- crop(solar, GWR)
 solar <- scale(solar)
 
-Trange <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
+Trange <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/temp_annRange.tif"))
 Trange <- crop(Trange, GWR)
 Trange <- scale(Trange)
 
-road <- rast(paste0(local.dir,"GISinputs-repositories/NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
+road <- rast(paste0(local.files,"NZEnvDS_v1.1/final_layers_nztm/distance_road.tif"))
 road <- crop(road, GWR)
 road <- scale(road) #type in assigned name (e.g. 'road)' to check sf details
 
@@ -74,7 +76,7 @@ road <- scale(road) #type in assigned name (e.g. 'road)' to check sf details
 
 # Presence-only records (pooled from NVS, iNaturalist, authors' observations, and herbaria)
 obs <-
-  read_csv("SM_obs_public/SMobs269.csv") %>%
+  read_csv(paste0(local.files,"SMobs269.csv")) %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%

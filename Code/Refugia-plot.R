@@ -2,7 +2,7 @@
 
 library(tidyverse)
 
-refugia <- read.csv("Model-outputs/Area_suitable-2025-01-27.csv", header=TRUE)
+refugia <- read.csv("Model-outputs/Output-summaries/Area_suitable-2025-01-27.csv", header=TRUE)
 
 refugia["Scenario"][refugia["Scenario"] == "All"] <- "All suitably waterlogged soils"
 refugia["Scenario"][refugia["Scenario"] == "IR1"] <- "Low infection risk (Scenario 1)"

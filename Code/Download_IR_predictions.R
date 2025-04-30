@@ -1,4 +1,4 @@
-### Process for downloading Rust Risk data from NIWA website 
+### Process for downloading myrtle rust risk data from NIWA website 
 ### (https://myrtlerust.com/disease/plant/niwa-maps)
 
 # Code originally written by Stephanie Tomscha, June 2022
