@@ -9,3 +9,22 @@ Model-outputs/2024-08-22_iPPM_run/iPPM_predictions_lattice100.prj
 Model-outputs/2024-08-22_iPPM_run/iPPM_predictions_lattice100.shp
 Model-outputs/2024-08-22_iPPM_run/iPPM_predictions_lattice100.shx
 Model-outputs/2024-08-15_PO-PPM_run/PO-PPM_scaled_predictions_100_2024-08-19.csv
+*.tif
+2025-01-24 workscape iPPM.RData
+Model-outputs/Abundace_are_summaries_2025-01-22.xlsx
+Model-outputs/Abundance1km_2.dbf
+Model-outputs/Abundance1km_2.prj
+Model-outputs/Abundance1km_2.shp
+Model-outputs/Abundance1km_2.shx
+*.png
+*.dbf
+*.prj
+*.shp
+*.shx
+*.rds
+*.rds
+Model-outputs/iPPM_fixed_effects_2025-01-22.rds
+Model-outputs/iPPM_scaled_predictions100_2025-01-22.csv
+Model-outputs/iPPM_fixed_effects_2025-01-22.rds
+Model-outputs/Area_suitable-2025-01-27.csv
+Model-outputs/Area_suitable.csv

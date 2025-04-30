@@ -32,6 +32,9 @@ rm(list=ls())
 local.dir <- "D:/"
 setwd(paste0(local.dir,"Repositories/GWRSM-SDM")) #just to make sure your working directory is the cloned repository
 
+local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally
+run.date <- as.character(Sys.Date())
+
 #Load required packages
 #I think the inlabru / INLA / PointedSDMs packages will be need to recognise the BruSDM outputs
 library(PointedSDMs) #version 1.3
@@ -48,23 +51,23 @@ library(tidyterra)
 #=== Read in Data sources ===#
 
 # Study domain
-freshwater <-
-  st_read("LCDB5-open-water/LCDB5-open-water-and-rivers.shp")
+clipout <-
+  st_read("LCDB5-clipping-layers/LCDB5-open-water-and-rivers.shp")
 GWR <-
   st_read("GWRboundary/GWRboundary2193.shp") %>%
-  st_difference(y = st_union(freshwater))
+  st_difference(y = st_union(clipout))
 
 #iPPM predictions
 
-iPPMintensity <- st_read("Model-outputs/2024-08-22_iPPM_run/iPPM_predictions_lattice100.shp")
+iPPMintensity <- st_read("Model-outputs/iPPM_predictions_lattice100_2025-01-22.shp")
 
 #LUCI flood classifications
-flood <- rast(paste0(local.dir,"GISinputs-repositories/LUCI-flood-risk/floodrisk2023.tif"))
+flood <- rast(paste0(local.files,"LUCI-flood-risk/floodrisk2023.tif"))
 
 #Observed SYZmai presence-only records
-#(pooled from NVS, iNaturalist, Colan's data, and herbaria)
+#(pooled from NVS, iNaturalist, extra observation data, and herbaria)
 obs <-
-  read_csv("SM_obs_public/SMobs269.csv") %>%
+  read_csv(paste0(local.files,"SM-PO-PA-GWR-full.csv")) %>%
   st_as_sf(coords = c("decimalLongitude", "decimalLatitude"),
            crs = "+proj=longlat +ellips=WGS84") %>%
   st_transform(crs = st_crs(GWR)) %>%
@@ -171,9 +174,14 @@ FloodSuit_100 <- aggregate(FloodSuit, fact=20)
 res(FloodSuit_100) #Double-check that the resolution is correct
 plot(FloodSuit_100)
 
+FloodSuit_100_cropped <- crop(FloodSuit_100, GWR, mask = TRUE)
+writeRaster(FloodSuit_100_cropped,"D:/Repositories/GWRSM-SDM/Proportion_suitable_soils.tif", overwrite =TRUE, filetype = "GTiff")
+
 Suitability <- terra::extract(FloodSuit_100,iPPMintensity) #interpolate predicted iPPM point locations with FloodSuit_100 raster to get multiplier values
 Filtered_suitability <- iPPMintensity$scld_mn * Suitability
-iPPMintensity <- cbind(iPPMintensity,Filtered_suitability$floodrisk2023)
+Filtered_suitability_mean <- iPPMintensity$mean * Suitability
+Filtered_suitability_scaled <- scale(Filtered_suitability_mean$floodrisk2023)
+iPPMintensity <- cbind(iPPMintensity,Filtered_suitability$floodrisk2023,Filtered_suitability_mean$floodrisk2023,Filtered_suitability_scaled)
 
 Filtered_points <- ggplot() +
   geom_sf(data=iPPMintensity, aes(geometry = geometry, color = Filtered_suitability.floodrisk2023)) +
@@ -188,12 +196,12 @@ Filtered_points <- ggplot() +
   theme_bw()
 
 #Export projected values to a shapefile for analysis in ArcGIS or QGIS
-st_write(iPPMintensity,"Model-outputs/filtered_predictions_100.shp")
+st_write(iPPMintensity,paste0("Model-outputs/filtered_predictions_100_",run.date,".shp"),overwrite=TRUE)
 
 #Export map of filtered projections
 
 ggsave(Filtered_points,
-       filename=paste0("Model-outputs/Filteredpreds100m.png"),
+       filename=paste0("Model-outputs/Filteredpreds100m_",run.date,".png"),
        device="png",
        height=10, width = 16, units = "cm",dpi="print")
 

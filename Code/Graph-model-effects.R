@@ -8,15 +8,15 @@ Coefs<-read.csv("D:/Repositories/GWRSM-SDM/Model-outputs/Output-summaries/Model_
 
 coef.plot <- ggplot(data=subset(Coefs, Covariate != "PO intercept" & Covariate != "PA intercept" 
                    & Covariate != "Intercept"),
-                aes(x = Covariate, y = mean, group_by=Model,color=Model), 
+                aes(x = Covariate, y = Effect.size, group_by=Model,color=Model), 
                 position = position_dodge(0.5)) +
-                geom_pointrange(stat="identity", aes(ymin = X0.025quant, ymax = X0.975quant), 
+                geom_pointrange(stat="identity", aes(ymin = Lower.95.CrI, ymax = Upper.95.CrI), 
                   position = position_dodge(0.5)) +
                 geom_hline(yintercept = 0) +
                 #ggtitle(label="A") +
                 ylab("Effect size") +
                 coord_flip() +
-                theme_bw() +
+                theme_classic() +
                 theme(legend.position="bottom",legend.title=element_blank())
 
 ggsave(coef.plot,
