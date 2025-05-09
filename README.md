@@ -7,7 +7,7 @@ Please note that this manuscript is currently in press.
 
 [![DOI](https://zenodo.org/badge/772350956.svg)](https://zenodo.org/doi/10.5281/zenodo.10836317)
 
-The FigShare project for this work is here: https://figshare.com/projects/Identifying_potentially_suitable_and_accessible_refugia_to_mitigate_impacts_of_an_emerging_disease_on_a_rare_tree/198604 
+The FigShare project for this work is [here] (https://figshare.com/projects/Identifying_potentially_suitable_and_accessible_refugia_to_mitigate_impacts_of_an_emerging_disease_on_a_rare_tree/198604). 
 
 ## Repository contents
 
