@@ -5,19 +5,19 @@ library(tidyverse)
 refugia <- read.csv("Model-outputs/Output-summaries/Area_suitable-2025-01-27.csv", header=TRUE)
 
 refugia["Scenario"][refugia["Scenario"] == "All"] <- "All suitably waterlogged soils"
-refugia["Scenario"][refugia["Scenario"] == "IR1"] <- "Low infection risk (Scenario 1)"
-refugia["Scenario"][refugia["Scenario"] == "IR2"] <- "Low infection risk (Scenario 2)"
-refugia["Scenario"][refugia["Scenario"] == "Accessible_IR1"] <- "Accessible & low infection risk (Scenario 1)"
-refugia["Scenario"][refugia["Scenario"] == "Accessible_IR2"] <- "Accessible & low infection risk (Scenario 2)"
+refugia["Scenario"][refugia["Scenario"] == "IR1"] <- "Low infection risk - scenario 1"
+refugia["Scenario"][refugia["Scenario"] == "IR2"] <- "Low infection risk - scenario 2"
+refugia["Scenario"][refugia["Scenario"] == "Accessible_IR1"] <- "Accessible & low infection risk - scenario 1"
+refugia["Scenario"][refugia["Scenario"] == "Accessible_IR2"] <- "Accessible & low infection risk - scenario 2"
 
 refugia["Intensity"][refugia["Intensity"] == "High"] <- "Most suitable"
 refugia["Intensity"][refugia["Intensity"] == "Low"] <- "Least suitable"
 
 #Re-order the factor levels for graphical display
-refugia$Scenario = factor(refugia$Scenario,levels=c("Accessible & low infection risk (Scenario 2)",
-                                                    "Accessible & low infection risk (Scenario 1)",
-                                                    "Low infection risk (Scenario 2)",    
-                                                    "Low infection risk (Scenario 1)",
+refugia$Scenario = factor(refugia$Scenario,levels=c("Accessible & low infection risk - scenario 2",
+                                                    "Accessible & low infection risk - scenario 1",
+                                                    "Low infection risk - scenario 2",    
+                                                    "Low infection risk - scenario 1",
                                                     "Accessible",
                                                     "All suitably waterlogged soils")) 
 
@@ -43,6 +43,6 @@ BPl <- ggplot(data = subset(refugia, Scenario != "Total"),
 
 
 ggsave(BPl,
-       filename=paste0("Model-outputs/Figure5.png"),
-       device="png",
+       filename=paste0("Model-outputs/Fig5.tif"),
+       device="tiff",
        height=9, width = 16, units = "cm",dpi="print")
