@@ -1,6 +1,7 @@
 # GWRSM-SDM: Point Process Models for *Syzygium maire* Distribution in the Greater Wellington Region of Aotearoa New Zealand
 
-Repository for the manuscript Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill CG, Ruston P, Jackson B, Deslippe JR (Accepted April 2025) Identifying potentially suitable and accessible refugia to mitigate impacts of an emerging disease on a rare tree. Conservation Biology.
+Repository for the manuscript Herbert SM*, Tomscha SA*, Lai HR, Benavidez R, Balkwill CG, Ruston P, Jackson B, Deslippe JR (Accepted April 2025) Identifying potentially suitable and accessible refugia to mitigate impacts of an emerging disease on a rare tree. Conservation Biology. doi: 10.1111/cobi.70088.
+
 Authors labelled with an asterisk (*) contributed equally. 
 
 Please note that this manuscript is currently in press. 
