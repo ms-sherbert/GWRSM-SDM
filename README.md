@@ -55,7 +55,7 @@ Large geospatial input files are stored separately. These are .tif raster files 
 - floodrisk2023.tif: https://doi.org/10.6084/m9.figshare.25413709
 - Scenario1.tif and Scenario2.tif: https://doi.org/10.6084/m9.figshare.25413733
 - dis2road7Euc500r.tif: https://doi.org/10.6084/m9.figshare.25413748
-- Proportion_suitable_soils: https://doi.org/10.6084/m9.figshare.28900922
+- Proportion_suitable_soils.tif: https://doi.org/10.6084/m9.figshare.28900922
 
 The raster files of bioclimatic covariates used in the point process model codes (`PPM_explore.R` and `PointedSDMs_Waitrial.R`) are from the New Zealand Environmental Data Stack (NZEnvDS) version 1.1 (NZTM projection), and can be downloaded here: https://doi.org/10.7931/m6rm-vz40. Should you use these data, please cite the following paper and any others of relevance:
 

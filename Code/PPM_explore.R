@@ -1,6 +1,7 @@
 # Script to explore the feasibility of point process model
-# Written by: HR Lai & S Herbert
+# Written by: HR Lai & SM Herbert
 # Written for R version 4.2.2 (HR Lai), but works fine with 4.3.1 (S Herbert)
+# Last tested: 5 June 2025
 
 #=== Preamble - use bits as needed for your computer ===#
 
@@ -219,9 +220,9 @@ with(B1, plot(median, CRPS_block))
 
 #=== Examine Parameters ====#
 # int.plot <- plot(fit, "Intercept")
-flist <- vector("list", NROW(fit$summary.random$fTmin))
-for (i in seq_along(flist)) flist[[i]] <- plot(fit, "fTmin", index = i)
-multiplot(plotlist = flist, cols = 3)
+#flist <- vector("list", NROW(fit$summary.random$fTmin))
+#for (i in seq_along(flist)) flist[[i]] <- plot(fit, "fTmin", index = i)
+#multiplot(plotlist = flist, cols = 3)
 
 spde.range <- spde.posterior(fit, "fmatern", what = "range")
 spde.logvar <- spde.posterior(fit, "fmatern", what = "log.variance")

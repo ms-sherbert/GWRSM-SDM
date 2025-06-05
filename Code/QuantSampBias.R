@@ -1,9 +1,17 @@
 #====== Assessment of spatial bias against common biases =====#
+# Written by: SM Herbert
+# Written for R version 4.3.1
+# Last test: 5 June 2025
 
 #--- Preamble ---#
 
 rm(list=ls())
-setwd("D:/Repositories")
+
+#Set up some shorthand objects for file paths
+local.dir <- "D:/" #Change so that file path matches directory where repositories are cloned to your computer
+local.files <- "D:/Repositories/Offline-files-GWRSM-SDM/" #file path where any gitignored files are stored locally
+
+setwd(paste0(local.dir,"Repositories/GWRSM-SDM"))
 
 library(sampbias)
 library(raster)
@@ -17,10 +25,10 @@ library(scales) #not needed?
 
 #--- Read in data and manipulate into format required ---#
 
-SMrecords <- read.csv("GWRSM-SDM/SM_obs_GBIF/SMobs269.csv") 
-GWR <- read_sf("GWRSM-SDM/GWRboundary/GWRboundary2193.shp")
+SMrecords <- read.csv(paste0(local.files,"SMobs269.csv")) # Note that this line won't work unless you have the files in your local directory
+GWR <- read_sf("GWRboundary/GWRboundary2193.shp")
 
-#---
+#--- Bias assessment ---#
 
 test<- sampbias::calculate_bias(x = SMrecords,
                       res = 0.01,
